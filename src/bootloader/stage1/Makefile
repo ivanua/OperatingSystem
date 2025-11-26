@@ -6,3 +6,4 @@ all: $(BUILD_DIR)/stage1.bin
 
 $(BUILD_DIR)/stage1.bin: boot.asm
 	@$(ASM) $(ASMFLAGS) -o $@ $<
+	@echo "--> Created  stage1.bin"

@@ -14,6 +14,7 @@ floppy_image: $(BUILD_DIR)/floppy_image.img
 $(BUILD_DIR)/floppy_image.img: bootloader
 	@cp $(BUILD_DIR)/stage1.bin $@
 	@truncate -s 1440k $@
+	@echo "--> Created: " $@
 
 #
 # Bootloader
