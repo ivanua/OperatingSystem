@@ -1,0 +1,8 @@
+megs: 128
+romimage: file=/home/ivan/Ivan/Toolchain/bochs/BIOS-bochs-latest
+vgaromimage: file=/home/ivan/Ivan/Toolchain/bochs/VGABIOS-elpin-2.40
+mouse: enabled=0
+display_library: x, options="gui_debug"
+ata0-master: type=disk, path="build/disk_image.raw", heads=16, spt=63
+
+boot: disk

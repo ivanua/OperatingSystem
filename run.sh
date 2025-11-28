@@ -1,1 +1,1 @@
-qemu-system-i386 -fda build/floppy_image.img
+qemu-system-i386 -hda build/disk_image.raw
