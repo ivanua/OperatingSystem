@@ -13,7 +13,7 @@ entry:
 	cli
 
     ; save boot drive
-    mov [boot_drive], dl
+    mov [g_BootDrive], dl
 
     ; setup stack
     mov ax, ds
@@ -23,8 +23,8 @@ entry:
 
     ; switch to protected mode
     cli                     ; Disable interrupts
-    call enable_a20          ; Enable A20 gate
-    call load_gdt            ; Load GDT
+    call EnableA20          ; Enable A20 gate
+    call LoadGDT            ; Load GDT
 
     ; set protection enable flag in CR0
     mov eax, cr0
@@ -53,67 +53,67 @@ entry:
 
     ; expect boot drive in dl, send it as argument to start function
     xor edx, edx
-    mov dl, [boot_drive]
+    mov dl, [g_BootDrive]
     push edx
     call start
 
     cli
     hlt
 
-enable_a20:
+EnableA20:
     [bits 16]
     ; disable keyboard
-    call a20_wait_input
+    call A20WaitInput
     mov al, KBD_DISABLE_PORT
     out KBD_CMD_PORT, al
 
     ; read control output port
-    call a20_wait_input
+    call A20WaitInput
     mov al, KBD_READ_CTRL_OUT_PORT
     out KBD_CMD_PORT, al
 
-    call a20_wait_output
+    call A20WaitOutput
     in al, KBD_DATA_PORT
     push eax
 
     ; write control output port
-    call a20_wait_input
+    call A20WaitInput
     mov al, KBD_WRITE_CTRL_OUT_PORT
     out KBD_CMD_PORT, al
     
-    call a20_wait_input
+    call A20WaitInput
     pop eax
     or al, 2                                    ; bit 2 = A20 bit
     out KBD_DATA_PORT, al
 
     ; enable keyboard
-    call a20_wait_input
+    call A20WaitInput
     mov al, KBD_ENABLE_PORT
     out KBD_CMD_PORT, al
 
-    call a20_wait_input
+    call A20WaitInput
     ret
 
-a20_wait_input:
+A20WaitInput:
     [bits 16]
     ; wait until status bit 2 (input buffer) is 0
     ; by reading from command port, we read status byte
     in al, KBD_CMD_PORT
     test al, 2
-    jnz a20_wait_input
+    jnz A20WaitInput
     ret
 
-a20_wait_output:
+A20WaitOutput:
     [bits 16]
     ; wait until status bit 1 (output buffer) is 1 so it can be read
     in al, KBD_CMD_PORT
     test al, 1
-    jz a20_wait_output
+    jz A20WaitOutput
     ret
 
-load_gdt:
+LoadGDT:
     [bits 16]
-    lgdt [g_gdtdesc]
+    lgdt [g_GDTDesc]
     ret
 
 KBD_DATA_PORT               equ 0x60
@@ -123,7 +123,7 @@ KBD_ENABLE_PORT             equ 0xAE
 KBD_READ_CTRL_OUT_PORT      equ 0xD0
 KBD_WRITE_CTRL_OUT_PORT     equ 0xD1
 
-g_gdt:      ; NULL descriptor
+g_GDT:      ; NULL descriptor
             dq 0
 
             ; 32-bit code segment
@@ -158,7 +158,7 @@ g_gdt:      ; NULL descriptor
             db 00001111b                ; granularity (1b pages, 16-bit pmode) + limit (bits 16-19)
             db 0                        ; base high
 
-g_gdtdesc:  dw g_gdtdesc - g_gdt - 1    ; limit = size of GDT
-            dd g_gdt                    ; address of GDT
+g_GDTDesc:  dw g_GDTDesc - g_GDT - 1    ; limit = size of GDT
+            dd g_GDT                    ; address of GDT
 
-boot_drive: db 0
+g_BootDrive: db 0
