@@ -8,7 +8,6 @@ extern start
 
 global entry
 
-
 entry:
 	cli
 

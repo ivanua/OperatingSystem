@@ -1,7 +1,8 @@
-bits 32
-
 global x86_outb
 global x86_inb
+
+global x86_Disk_CheckExtansionsPresent
+global x86_Disk_ExtansionRead
 
 %macro x86_EnterRealMode 0
     [bits 32]
@@ -67,13 +68,85 @@ global x86_inb
 %endmacro
 
 x86_outb:
+    [bits 32]
     mov dx, [esp + 4]
     mov al, [esp + 8]
     out dx, al
     ret
 
 x86_inb:
+    [bits 32]
     mov dx, [esp + 4]
     xor eax, eax
     in al, dx
+    ret
+
+x86_Disk_CheckExtansionsPresent:
+    [bits 32]
+
+    ; make new call frame
+    push ebp             ; save old call frame
+    mov ebp, esp          ; initialize new call frame
+
+    x86_EnterRealMode
+
+    mov ah, 41h
+    mov dl, [bp + 8]    ; dl - drive
+    stc
+    int 13h
+
+    mov eax, 1
+    sbb eax, 0           ; 1 on success, 0 on fail
+
+    push eax
+
+    x86_EnterProtectedMode
+
+    pop eax
+
+    ; restore old call frame
+    mov esp, ebp
+    pop ebp
+    ret
+
+x86_Disk_ExtansionRead:
+    [bits 32]
+
+    ; make new call frame
+    push ebp             ; save old call frame
+    mov ebp, esp         ; initialize new call frame
+
+    x86_EnterRealMode
+
+    ; save modified regs
+    push ebx
+    push es
+
+    ; setup args
+    mov dl, [bp + 8]     ; dl - drive
+
+    LinearToSegOffset [bp + 12], ds, esi, si    ; load DAP to ds:si
+
+    ; call int13h
+    mov ah, 42h
+    stc
+    int 13h
+
+    ; set return value
+    mov ax, 1
+    sbb ax, 0           ; 1 on success, 0 on fail
+
+    ; restore regs
+    pop es
+    pop ebx
+
+    push eax
+
+    x86_EnterProtectedMode
+
+    pop eax
+
+    ; restore old call frame
+    mov esp, ebp
+    pop ebp
     ret

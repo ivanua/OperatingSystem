@@ -7,7 +7,7 @@
 
 static const unsigned SCREEN_WIDTH = 80;
 static const unsigned SCREEN_HEIGHT = 25;
-static const uint8_t DEFAULT_COLOR = 0x7;
+static const uint8_t DEFAULT_COLOR = 0x07;
 
 static uint8_t* g_ScreenBuffer = (uint8_t*)0xB8000;
 static int g_ScreenX = 0, g_ScreenY = 0;
@@ -84,7 +84,7 @@ void putc(char c)
         g_ScreenY++;
         break;
     case '\t':
-        for (int i = 0; i < 4 - (g_ScreenX % 4); i++)
+        for (int i = 0; i < 4; i++)
             putc(' ');
         break;
     case '\r':
@@ -92,6 +92,7 @@ void putc(char c)
         break;
     default:
         putchr(g_ScreenX, g_ScreenY, c);
+        putcolor(g_ScreenX, g_ScreenY, DEFAULT_COLOR);
         g_ScreenX++;
         break;
     }
